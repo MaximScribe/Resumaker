@@ -1,0 +1,16 @@
+[package]
+name = "resumaker-cli"
+description = "Command-line interface for Resumaker"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+clap.workspace = true
+resumaker-core.workspace = true
+
+[lints]
+workspace = true
