@@ -1,0 +1,30 @@
+[workspace]
+members = ["crates/*"]   # every folder in crates/ is a crate of this workspace
+resolver = "3"           # how dependency versions are chosen; "3" goes with edition 2024
+
+# Shared package info. Each crate opts in with `version.workspace = true` etc.
+[workspace.package]
+version = "0.1.0"
+edition = "2024"         # Rust language edition, like choosing -std=c++20
+rust-version = "1.85"    # oldest compiler we support
+license = "MIT"
+authors = ["Thomas Maxim Lammerich"]
+repository = "https://github.com/MaximScribe/Resumaker"
+
+# Dependency versions written once, here. Crates refer to them by name.
+[workspace.dependencies]
+clap = { version = "4.5", features = ["derive"] }
+resumaker-core = { path = "crates/resumaker-core" }   # our own library, found by path
+
+# Compiler and linter rules for every crate
+[workspace.lints.rust]
+unsafe_code = "forbid"   # nobody may write `unsafe` in this project
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+# Settings for `cargo build --release`
+[profile.release]
+lto = true               # link-time optimisation across all crates (smaller and faster)
+codegen-units = 1        # slower to compile, better optimised
+strip = true             # drop debug symbols, so a much smaller binary
