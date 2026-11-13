@@ -32,12 +32,26 @@ If you choose a cloud provider, setup tells you that your source files will be s
 
 ## Installation
 
+Resumaker is a single self-contained binary with no runtime to install. PDF rendering ([Typst](https://typst.app)) is built in.
+
+**Prebuilt binaries** will be available on the [Releases](https://github.com/MaximScribe/Resumaker/releases) page.
+
+**From source** (requires [Rust](https://rustup.rs) 1.85+):
+
 ```bash
-npm install -g resumaker      # installs the `resumaker` and `resumake` commands
-resumaker                     # run setup
+cargo install --git https://github.com/MaximScribe/Resumaker resumaker-cli   # installs `resumaker` and `resumake`
+resumaker                                                                     # run setup
 ```
 
-Requires Node.js 20 or newer. PDF rendering uses [Typst](https://typst.app), which is bundled.
+### Platform support
+
+| Platform | Status |
+|---|---|
+| Windows (x86_64) | Primary target |
+| Linux (x86_64) | Supported |
+| macOS (Apple Silicon, Intel) | Planned |
+
+Building from source on Windows requires the [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the C++ workload. On Linux you need a C toolchain (`gcc`); on macOS, the Xcode Command Line Tools.
 
 ## Setup: `resumaker`
 
@@ -191,7 +205,7 @@ Environment variables override keychain keys, for example `RESUMAKER_OPENAI_KEY`
 - [ ] v0.4: cover letters, feedback loop
 - [ ] v0.5: API sources
 - [ ] v0.6: reference PDF templates, preset template pack
-- [ ] v1.0: enforced fact check, stable release
+- [ ] v1.0: enforced fact check, prebuilt binaries for Windows, Linux and macOS
 - [ ] Optional GUI
 
 ## License
