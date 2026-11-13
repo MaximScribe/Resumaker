@@ -1,17 +1,16 @@
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
+use clap::Parser;
+use resumaker_cli::Format;
 
 /// Make a resume tailored to a job, with an optional cover letter.
 #[derive(Parser, Debug)]
 #[command(name = "resumake", version)]
 struct Args {
-    // ── Job ──────────────────────────────────────────────────────────────
     /// The job to tailor to: text, a file or a URL. Repeatable.
     #[arg(short = 'c', long, help_heading = "Job")]
     context: Vec<String>,
 
-    // ── Cover letter ─────────────────────────────────────────────────────
     /// Also write a cover letter.
     #[arg(short = 'm', long, help_heading = "Cover letter")]
     cover_letter: bool,
@@ -24,7 +23,6 @@ struct Args {
     #[arg(long, help_heading = "Cover letter")]
     cover_only: bool,
 
-    // ── Sources ──────────────────────────────────────────────────────────
     /// Extra experience files for this run. Repeatable, globs allowed.
     #[arg(short = 'f', long, help_heading = "Sources")]
     file: Vec<PathBuf>,
@@ -33,7 +31,6 @@ struct Args {
     #[arg(long, help_heading = "Sources")]
     no_sources: bool,
 
-    // ── Output ───────────────────────────────────────────────────────────
     /// Output folder. Default: from setup.
     #[arg(short = 'o', long, help_heading = "Output")]
     out: Option<PathBuf>,
@@ -63,7 +60,6 @@ struct Args {
     #[arg(short = 'y', long, help_heading = "Output")]
     force: bool,
 
-    // ── Model ────────────────────────────────────────────────────────────
     /// Inference provider for this run. Default: from setup.
     #[arg(long, help_heading = "Model")]
     provider: Option<String>,
@@ -72,7 +68,6 @@ struct Args {
     #[arg(long, help_heading = "Model")]
     model: Option<String>,
 
-    // ── Run ──────────────────────────────────────────────────────────────
     /// Review and revise interactively, then save your feedback.
     #[arg(short = 'F', long, help_heading = "Run")]
     feedback: bool,
@@ -84,17 +79,6 @@ struct Args {
     /// Show each pipeline step.
     #[arg(short = 'v', long, help_heading = "Run")]
     verbose: bool,
-}
-
-/// File formats a resume can be exported as.
-#[derive(Clone, Copy, Debug, ValueEnum)]
-enum Format {
-    Pdf,
-    Docx,
-    Md,
-    Html,
-    Txt,
-    Json,
 }
 
 impl Args {
