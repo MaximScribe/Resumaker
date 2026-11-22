@@ -6,7 +6,7 @@ resolver = "3"           # how dependency versions are chosen; "3" goes with edi
 [workspace.package]
 version = "0.1.0"
 edition = "2024"         # Rust language edition, like choosing -std=c++20
-rust-version = "1.85"    # oldest compiler we support
+rust-version = "1.92"    # oldest compiler we support
 license = "MIT"
 authors = ["Thomas Maxim Lammerich"]
 repository = "https://github.com/MaximScribe/Resumaker"
@@ -14,11 +14,17 @@ repository = "https://github.com/MaximScribe/Resumaker"
 # Dependency versions written once, here. Crates refer to them by name.
 [workspace.dependencies]
 clap = { version = "4.5", features = ["derive"] }
+anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_with = "3"
 thiserror = "2"
-resumaker-core = { path = "crates/resumaker-core" }   # our own library, found by path
+typst = "0.15"
+typst-pdf = "0.15"
+typst-layout = "0.15"
+docx-rs = "0.4"
+typst-kit = { version = "0.15", default-features = false, features = ["embedded-fonts", "scan-fonts"] }
+resumaker-core = { path = "crates/resumaker-core", version = "0.1.0" }   # our own library, found by path
 
 # Compiler and linter rules for every crate
 [workspace.lints.rust]

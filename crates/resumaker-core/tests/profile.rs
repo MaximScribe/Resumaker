@@ -4,7 +4,7 @@ use resumaker_core::Profile;
 use resumaker_core::profile::SourceKind;
 
 fn example_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../examples/profile.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/example-profile.json")
 }
 
 #[test]

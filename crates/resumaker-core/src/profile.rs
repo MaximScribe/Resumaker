@@ -245,6 +245,12 @@ pub enum SourceKind {
 }
 
 impl Profile {
+    /// A fictional sample profile, used for template previews and tests.
+    pub fn example() -> Self {
+        Self::from_json(include_str!("../assets/example-profile.json"))
+            .expect("bundled example profile is valid")
+    }
+
     /// Parses a profile from JSON.
     pub fn from_json(json: &str) -> Result<Self, Error> {
         Ok(serde_json::from_str(json)?)

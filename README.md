@@ -36,7 +36,7 @@ Resumaker is a single self-contained binary with no runtime to install. PDF rend
 
 **Prebuilt binaries** will be available on the [Releases](https://github.com/MaximScribe/Resumaker/releases) page.
 
-**From source** (requires [Rust](https://rustup.rs) 1.85+):
+**From source** (requires [Rust](https://rustup.rs) 1.92+):
 
 ```bash
 cargo install --git https://github.com/MaximScribe/Resumaker resumaker-cli   # installs `resumaker` and `resumake`

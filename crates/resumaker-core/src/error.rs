@@ -14,6 +14,15 @@ pub enum Error {
 
     #[error("invalid JSON: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("rendering failed: {0}")]
+    Render(String),
+
+    #[error("unknown template `{0}` (use a built-in name or a path to a .typ file)")]
+    UnknownTemplate(String),
+
+    #[error("unknown format `{0}` (expected pdf, docx, md, html, txt or json)")]
+    UnknownFormat(String),
 }
 
 impl Error {
