@@ -206,7 +206,7 @@ Environment variables override keychain keys, for example `RESUMAKER_OPENAI_KEY`
 - [x] v0.1: profile schema and PDF export from example data
 - [x] v0.2: setup wizard, inference providers, folder sources
 - [x] v0.3: tailored resumes, all export formats
-- [ ] v0.4: cover letters, feedback loop
+- [x] v0.4: cover letters, feedback loop
 - [ ] v0.5: API sources
 - [ ] v0.6: reference PDF templates, preset template pack
 - [ ] v1.0: enforced fact check, prebuilt binaries for Windows, Linux and macOS
