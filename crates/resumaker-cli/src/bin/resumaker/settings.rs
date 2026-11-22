@@ -92,10 +92,19 @@ pub fn set(cmd: SetCommand) -> anyhow::Result<()> {
         }
         SetCommand::Style { style } => {
             if style.to_ascii_lowercase().ends_with(".pdf") {
-                bail!("reference PDFs are not supported yet; use a template name or a .typ file");
+                let generated =
+                    resumaker_cli::reference::create(&expand_home(Path::new(&style)), &config)?;
+                println!(
+                    "created template `{}`: {}",
+                    generated.name,
+                    generated.file.display()
+                );
+                println!("preview: {}", generated.preview.display());
+                config.output.style = generated.name;
+            } else {
+                Template::resolve(&style)?;
+                config.output.style = style;
             }
-            Template::resolve(&style)?;
-            config.output.style = style;
         }
         SetCommand::Output { path: folder } => {
             config.output.folder = Some(folder);

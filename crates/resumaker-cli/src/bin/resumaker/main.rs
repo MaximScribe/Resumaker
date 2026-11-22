@@ -63,7 +63,7 @@ enum SetCommand {
     #[command(subcommand)]
     Source(SourceCommand),
 
-    /// Set the resume style: a built-in template or a .typ file.
+    /// Set the resume style: a template name, a .typ file, or a reference resume PDF to copy.
     Style { style: String },
 
     /// Set the folder where resumes are saved.

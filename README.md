@@ -88,7 +88,7 @@ You can also change settings directly:
 | `resumaker set source folder <path>` | Set the folder of experience files |
 | `resumaker set source api <url> [--token]` | Add an API source; `--token` asks for a bearer token |
 | `resumaker set source remove-api <url>` | Remove an API source |
-| `resumaker set style <preset \| template.typ>` | Change the resume template |
+| `resumaker set style <preset \| template.typ \| resume.pdf>` | Change the template, or generate one from a resume PDF you like |
 | `resumaker set output <path>` | Change the output folder |
 | `resumaker set formats <list>` | Change the default formats, e.g. `pdf,docx` |
 | `resumaker set lang <code>` | Change the output language, e.g. `en`, `de` |
@@ -177,7 +177,7 @@ Force a mode with `--adapter json-resume`, `--adapter raw` or an adapter name. B
                             └► cover letter
 ```
 
-A reference PDF is turned into a Typst template during setup. Resumaker extracts the layout, section order, fonts and colours, and you confirm a preview before it is saved. The result closely matches the original but is not a pixel-perfect copy.
+A reference PDF is turned into a Typst template during setup (or with `resumaker set style my-cv.pdf`). Resumaker reads the fonts and accent colour from the PDF, and the model infers the layout: sidebar or single column, heading style, date column, density and section order. You get a preview before using it, and the generated `.typ` file starts with plain settings you can edit. The result closely matches the original but is not a pixel-perfect copy.
 
 ## Configuration
 
@@ -208,7 +208,7 @@ Environment variables override keychain keys, for example `RESUMAKER_OPENAI_KEY`
 - [x] v0.3: tailored resumes, all export formats
 - [x] v0.4: cover letters, feedback loop
 - [x] v0.5: API sources
-- [ ] v0.6: reference PDF templates, preset template pack
+- [x] v0.6: reference PDF templates, preset template pack
 - [ ] v1.0: enforced fact check, prebuilt binaries for Windows, Linux and macOS
 - [ ] Optional GUI
 

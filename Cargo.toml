@@ -29,6 +29,7 @@ calamine = "0.38"
 quick-xml = "0.41"
 zip = { version = "8", default-features = false, features = ["deflate"] }
 walkdir = "2"
+lopdf = "0.42"
 glob = "0.3"
 typst = "0.15"
 typst-pdf = "0.15"

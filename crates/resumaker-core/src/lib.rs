@@ -13,6 +13,7 @@ pub mod profile;
 pub mod provider;
 pub mod secrets;
 pub mod sources;
+pub mod style;
 pub mod template;
 
 pub use config::Config;
