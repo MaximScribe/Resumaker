@@ -1,7 +1,8 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, bail};
-use resumaker_core::config::{ApiSource, expand_home};
+use resumaker_core::config::{ApiSource, Inference, expand_home};
+use resumaker_core::llm::{self, Endpoint, Prompt};
 use resumaker_core::secrets::{SecretKey, SecretOrigin, Secrets, mask};
 use resumaker_core::{Config, ProviderKind, Template};
 
@@ -158,8 +159,55 @@ pub fn auth(cmd: AuthCommand) -> anyhow::Result<()> {
                 println!("no {} key was stored", provider.display_name());
             }
         }
-        AuthCommand::Test { .. } => bail!("provider tests are not implemented yet"),
+        AuthCommand::Test { provider } => test_provider(provider, &secrets)?,
     }
+    Ok(())
+}
+
+fn test_provider(provider: Option<ProviderKind>, secrets: &Secrets) -> anyhow::Result<()> {
+    let (_, config) = load()?;
+    let mut inference = config.inference;
+    if let Some(p) = provider.filter(|p| *p != inference.provider) {
+        inference = Inference {
+            provider: p,
+            model: None,
+            url: None,
+        };
+    }
+    let name = inference.provider.display_name();
+    let endpoint = Endpoint::from_config(&inference, secrets)?;
+    println!("connecting to {name} at {}", endpoint.base_url);
+    let has_model = !endpoint.model.is_empty();
+    let llm = llm::connect(endpoint);
+
+    let hint = if inference.provider.is_local() {
+        format!("{name} did not respond; is it running?")
+    } else {
+        format!("{name} did not respond")
+    };
+    let models = llm.list_models().context(hint)?;
+    println!("ok: {} model(s) available", models.len());
+    if !has_model {
+        println!(
+            "no model configured; pick one with `resumaker set provider {} --model <id>`",
+            inference.provider
+        );
+        return Ok(());
+    }
+    let model = inference.model.unwrap_or_default();
+    if !models.is_empty() && !models.iter().any(|m| m == &model) {
+        println!("warning: `{model}` is not in the provider's model list");
+    }
+    let mut prompt = Prompt::new(
+        "You are a connection test.",
+        "Reply with the single word OK.",
+    );
+    prompt.max_tokens = 256;
+    let reply = llm.complete(&prompt)?;
+    println!(
+        "ok: {model} replied {:?}",
+        reply.trim().chars().take(40).collect::<String>()
+    );
     Ok(())
 }
 

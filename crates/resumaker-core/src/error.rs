@@ -38,6 +38,32 @@ pub enum Error {
 
     #[error("keychain: {0}")]
     Keychain(String),
+
+    #[error("{url}: {}{message}", status.map(|s| format!("HTTP {s}: ")).unwrap_or_default())]
+    Http {
+        url: String,
+        status: Option<u16>,
+        message: String,
+    },
+
+    #[error("model: {0}")]
+    Llm(String),
+
+    #[error("the model's answer was cut off at the token limit")]
+    Truncated,
+
+    #[error("no API key for {0}; add one with `resumaker auth add {0}` or set ${env}", env = .0.key_env_var())]
+    MissingKey(crate::ProviderKind),
+
+    #[error(
+        "no model configured for {0}; choose one with `resumaker set provider {0} --model <id>`"
+    )]
+    NoModel(crate::ProviderKind),
+
+    #[error(
+        "no server URL configured for {0}; set one with `resumaker set provider {0} --url <url>`"
+    )]
+    NoServerUrl(crate::ProviderKind),
 }
 
 impl Error {
