@@ -383,6 +383,7 @@ fn folder_prompt(current: Option<&Path>) -> anyhow::Result<PathBuf> {
 
 fn style(config: &mut Config) -> anyhow::Result<()> {
     const CUSTOM: &str = "Use my own Typst template (.typ file)";
+    const REFERENCE: &str = "Match one of my resumes (PDF)";
     let mut options: Vec<String> = Template::builtin_names().map(str::to_owned).collect();
     if let Ok(dir) = resumaker_core::template::user_dir() {
         options.extend(
@@ -391,6 +392,7 @@ fn style(config: &mut Config) -> anyhow::Result<()> {
                 .map(|e| e.name),
         );
     }
+    options.push(REFERENCE.to_owned());
     options.push(CUSTOM.to_owned());
     let start = options
         .iter()
@@ -400,6 +402,34 @@ fn style(config: &mut Config) -> anyhow::Result<()> {
         .with_starting_cursor(start)
         .with_help_message("Preview with `resumaker templates preview <name>`")
         .prompt()?;
+    if choice == REFERENCE {
+        let path = Text::new("Path to a resume PDF whose look you like:")
+            .with_validator(|s: &str| {
+                let p = expand_home(Path::new(s.trim()));
+                Ok(
+                    if p.is_file() && s.trim().to_ascii_lowercase().ends_with(".pdf") {
+                        Validation::Valid
+                    } else {
+                        Validation::Invalid("not a PDF file".into())
+                    },
+                )
+            })
+            .prompt()?;
+        let generated = crate::reference::create(&expand_home(Path::new(path.trim())), config)?;
+        println!(" Preview: {}", generated.preview.display());
+        let keep = Confirm::new("Open the preview. Use this template?")
+            .with_default(true)
+            .prompt()?;
+        if keep {
+            config.output.style = generated.name;
+            return Ok(());
+        }
+        println!(
+            " Kept {} so you can edit it; choose another style.",
+            generated.file.display()
+        );
+        return style(config);
+    }
     if choice == CUSTOM {
         let path = Text::new("Path to the .typ file:")
             .with_validator(|s: &str| {

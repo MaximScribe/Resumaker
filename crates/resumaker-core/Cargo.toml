@@ -28,6 +28,7 @@ calamine.workspace = true
 quick-xml.workspace = true
 zip.workspace = true
 walkdir.workspace = true
+lopdf.workspace = true
 
 [features]
 # Derives clap::ValueEnum for option enums such as export::Format.
