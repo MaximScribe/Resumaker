@@ -6,6 +6,7 @@ pub mod config;
 mod error;
 pub mod export;
 pub mod llm;
+pub mod pipeline;
 pub mod profile;
 pub mod provider;
 pub mod secrets;

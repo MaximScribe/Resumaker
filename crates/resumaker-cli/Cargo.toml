@@ -13,6 +13,7 @@ clap.workspace = true
 resumaker-core = { workspace = true, features = ["clap"] }
 anyhow.workspace = true
 inquire.workspace = true
+glob.workspace = true
 
 [lints]
 workspace = true
