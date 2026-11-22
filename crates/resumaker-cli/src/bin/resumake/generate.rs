@@ -4,19 +4,18 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, bail};
 use resumaker_cli::wizard;
 use resumaker_core::config::{Config, expand_home};
-use resumaker_core::llm::{self, Endpoint};
+use resumaker_core::export::Options;
+use resumaker_core::letter::{self, LetterRequest};
+use resumaker_core::llm::{self, Endpoint, Llm};
 use resumaker_core::pipeline::context::{self, ContextOrigin};
 use resumaker_core::pipeline::{self, TailorRequest, Target};
 use resumaker_core::secrets::Secrets;
 use resumaker_core::sources::Collection;
-use resumaker_core::{Error, Template};
+use resumaker_core::{Error, Format, Profile, Template};
 
 use crate::Args;
 
 pub fn run(args: Args) -> anyhow::Result<()> {
-    if args.wants_cover_letter() {
-        bail!("cover letters are not available yet");
-    }
     if args.feedback {
         bail!("the feedback loop is not available yet");
     }
@@ -49,22 +48,12 @@ pub fn run(args: Args) -> anyhow::Result<()> {
         .unwrap_or_else(|| config.output.folder());
 
     let collection = collect(&args, &config)?;
-    let contexts = args
-        .context
-        .iter()
-        .map(|c| context::load(c).with_context(|| format!("reading job context {c:?}")))
-        .collect::<anyhow::Result<Vec<_>>>()?;
-    for c in &contexts {
-        let what = match &c.origin {
-            ContextOrigin::Text => "text".to_owned(),
-            ContextOrigin::File(f) => f.clone(),
-            ContextOrigin::Url(u) => u.clone(),
-        };
-        println!("job context: {what} ({} chars)", c.text.chars().count());
+    let job = load_contexts(&args.context, "job context")?;
+    let notes = load_contexts(&args.cover_context, "cover letter notes")?;
+    if job.is_empty() {
+        println!("no job context given: writing general-purpose documents");
     }
-    if contexts.is_empty() {
-        println!("no job context given: writing a general-purpose resume");
-    }
+    let wants_letter = args.wants_cover_letter();
 
     if args.dry_run {
         println!(
@@ -73,9 +62,17 @@ pub fn run(args: Args) -> anyhow::Result<()> {
             inference.model.as_deref().unwrap_or("no model"),
             template.name(),
         );
+        let mut docs = Vec::new();
+        if !args.cover_only {
+            docs.push("resume");
+        }
+        if wants_letter {
+            docs.push("cover letter");
+        }
         let formats: Vec<String> = formats.iter().map(|f| f.to_string()).collect();
         println!(
-            "would write {} to {}",
+            "would write {} as {} to {}",
+            docs.join(" and "),
             formats.join(", "),
             out_base.display()
         );
@@ -110,25 +107,140 @@ pub fn run(args: Args) -> anyhow::Result<()> {
         );
     }
 
-    println!("tailoring…");
-    let request = TailorRequest {
-        job: contexts.into_iter().map(|c| c.text).collect(),
-        preferences: Vec::new(),
+    let session = Session {
+        llm: llm.as_ref(),
+        profile,
+        job,
+        notes,
         lang: lang.clone(),
         pages,
+        formats,
+        options: pipeline::export_options(&lang, template, pages),
+        resume: !args.cover_only,
+        letter: wants_letter,
+        out_base,
+        force: args.force,
     };
-    let tailored = pipeline::tailor(llm.as_ref(), &profile, &request)?;
-    if let Some(target) = describe(&tailored.target) {
-        println!("target: {target}");
-    }
-
-    let dir = pipeline::application_dir(&out_base, &tailored.target, args.force);
-    let options = pipeline::export_options(&lang, template, pages);
-    let files = pipeline::write_outputs(&tailored.profile, &formats, &options, &dir, "resume")?;
-    for f in &files {
-        println!("✔ {}", f.display());
-    }
+    let output = session.produce(&[], None)?;
+    output.print();
     Ok(())
+}
+
+/// Everything needed to (re)produce one application's documents.
+struct Session<'a> {
+    llm: &'a dyn Llm,
+    profile: Profile,
+    job: Vec<String>,
+    notes: Vec<String>,
+    lang: String,
+    pages: u8,
+    formats: Vec<Format>,
+    options: Options,
+    resume: bool,
+    letter: bool,
+    out_base: PathBuf,
+    force: bool,
+}
+
+struct Output {
+    dir: PathBuf,
+    files: Vec<PathBuf>,
+}
+
+impl Output {
+    fn print(&self) {
+        println!("saved in {}", self.dir.display());
+        for f in &self.files {
+            let name = f
+                .file_name()
+                .map(|n| n.to_string_lossy())
+                .unwrap_or_default();
+            println!("  ✔ {name}");
+        }
+    }
+}
+
+impl Session<'_> {
+    /// Writes the documents. `dir` reuses an existing application folder.
+    fn produce(&self, preferences: &[String], dir: Option<&Path>) -> anyhow::Result<Output> {
+        let mut target = Target::default();
+        let mut tailored = None;
+        if self.resume {
+            println!("tailoring the resume…");
+            let request = TailorRequest {
+                job: self.job.clone(),
+                preferences: preferences.to_vec(),
+                lang: self.lang.clone(),
+                pages: self.pages,
+            };
+            let t = pipeline::tailor(self.llm, &self.profile, &request)?;
+            target = t.target.clone();
+            tailored = Some(t.profile);
+        }
+        let mut letter = None;
+        if self.letter {
+            println!("writing the cover letter…");
+            let request = LetterRequest {
+                job: self.job.clone(),
+                notes: self.notes.clone(),
+                preferences: preferences.to_vec(),
+                lang: self.lang.clone(),
+            };
+            // The letter draws on the tailored resume when there is one, so both agree.
+            let facts = tailored.as_ref().unwrap_or(&self.profile);
+            let (t, l) = letter::write(self.llm, facts, &request)?;
+            if target == Target::default() {
+                target = t;
+            }
+            letter = Some(l);
+        }
+        if let Some(t) = describe(&target) {
+            println!("target: {t}");
+        }
+
+        let dir = match dir {
+            Some(d) => d.to_path_buf(),
+            None => pipeline::application_dir(&self.out_base, &target, self.force),
+        };
+        let mut files = Vec::new();
+        if let Some(profile) = &tailored {
+            files.extend(pipeline::write_outputs(
+                profile,
+                &self.formats,
+                &self.options,
+                &dir,
+                "resume",
+            )?);
+        }
+        if let Some(l) = &letter {
+            let date = letter::long_date(&pipeline::today(), self.options.lang);
+            let sender = tailored.as_ref().unwrap_or(&self.profile);
+            std::fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
+            for &format in &self.formats {
+                let bytes = letter::render(l, sender, format, self.options.lang, &date)?;
+                let path = dir.join(format!("cover-letter.{}", format.extension()));
+                std::fs::write(&path, bytes)
+                    .with_context(|| format!("writing {}", path.display()))?;
+                files.push(path);
+            }
+        }
+        Ok(Output { dir, files })
+    }
+}
+
+fn load_contexts(items: &[String], what: &str) -> anyhow::Result<Vec<String>> {
+    let mut texts = Vec::new();
+    for item in items {
+        let c = context::load(item).with_context(|| format!("reading {what} {item:?}"))?;
+        let origin = match &c.origin {
+            ContextOrigin::Text => "text".to_owned(),
+            ContextOrigin::File(f) => f.clone(),
+            ContextOrigin::Url(u) => u.clone(),
+        };
+        println!("{what}: {origin} ({} chars)", c.text.chars().count());
+        texts.push(c.text);
+    }
+    Ok(texts)
 }
 
 /// Loads settings, starting the wizard on first use in an interactive terminal.
