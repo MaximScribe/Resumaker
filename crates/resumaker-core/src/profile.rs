@@ -272,6 +272,39 @@ impl Profile {
         std::fs::write(path, self.to_json()?).map_err(|e| Error::io(path, e))
     }
 
+    /// Concatenates profiles: sections are appended in order, and each `basics` field
+    /// takes the first non-empty value.
+    pub fn combine(profiles: impl IntoIterator<Item = Profile>) -> Profile {
+        let mut out = Profile::default();
+        for p in profiles {
+            let b = &mut out.basics;
+            macro_rules! first {
+                ($($f:ident),*) => { $( if b.$f.is_none() { b.$f = p.basics.$f.clone(); } )* };
+            }
+            first!(name, label, image, email, phone, url, summary, location);
+            if b.profiles.is_empty() {
+                b.profiles = p.basics.profiles.clone();
+            }
+            out.work.extend(p.work);
+            out.volunteer.extend(p.volunteer);
+            out.education.extend(p.education);
+            out.awards.extend(p.awards);
+            out.certificates.extend(p.certificates);
+            out.publications.extend(p.publications);
+            out.skills.extend(p.skills);
+            out.languages.extend(p.languages);
+            out.interests.extend(p.interests);
+            out.references.extend(p.references);
+            out.projects.extend(p.projects);
+            for s in p.sources {
+                if out.source(&s.id).is_none() {
+                    out.sources.push(s);
+                }
+            }
+        }
+        out
+    }
+
     pub fn source(&self, id: &str) -> Option<&Source> {
         self.sources.iter().find(|s| s.id == id)
     }

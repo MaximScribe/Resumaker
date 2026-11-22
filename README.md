@@ -155,13 +155,13 @@ Feedback is saved as plain text in your sources folder, or in the config folder 
 
 ## Connecting an API
 
-Resumaker works with any HTTP endpoint and tries three ways to read it:
+Resumaker works with any HTTP endpoint that returns JSON and tries three ways to read it:
 
-1. **[JSON Resume](https://jsonresume.org/schema):** if the endpoint returns this open standard, Resumaker reads it directly. This is the recommended format for your own backend.
-2. **Adapters:** small mapping modules for known APIs, in `src/sources/adapters/`. Contributions welcome.
+1. **[JSON Resume](https://jsonresume.org/schema):** if the endpoint returns this open standard, Resumaker uses it directly, without the model. This is the recommended format for your own backend.
+2. **Adapters:** small mapping modules for known APIs, in `crates/resumaker-core/src/sources/adapters/`. Built in: `github`, which turns `https://api.github.com/users/<name>/repos` into projects. Contributions welcome.
 3. **Any JSON:** anything else is treated like a source file, and the model reads it as part of merging.
 
-Bearer tokens and custom headers are supported. You can connect several APIs at once.
+Force a mode with `--adapter json-resume`, `--adapter raw` or an adapter name. Bearer tokens are supported (`--token` asks for one and stores it in the keychain), and you can connect several APIs at once. `resumaker sources pull > profile.json` shows exactly what Resumaker extracted.
 
 ## How it works
 
@@ -207,7 +207,7 @@ Environment variables override keychain keys, for example `RESUMAKER_OPENAI_KEY`
 - [x] v0.2: setup wizard, inference providers, folder sources
 - [x] v0.3: tailored resumes, all export formats
 - [x] v0.4: cover letters, feedback loop
-- [ ] v0.5: API sources
+- [x] v0.5: API sources
 - [ ] v0.6: reference PDF templates, preset template pack
 - [ ] v1.0: enforced fact check, prebuilt binaries for Windows, Linux and macOS
 - [ ] Optional GUI

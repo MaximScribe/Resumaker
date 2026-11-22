@@ -1,5 +1,7 @@
 //! Reading experience from files.
 
+pub mod adapters;
+pub mod api;
 pub mod extract;
 
 use std::collections::HashSet;
@@ -10,7 +12,9 @@ use walkdir::WalkDir;
 pub use extract::{FileKind, SUPPORTED_EXTENSIONS};
 
 use crate::Error;
-use crate::profile::{Source, SourceKind};
+use crate::config::ApiSource;
+use crate::llm::http::Transport;
+use crate::profile::{Profile, Source, SourceKind};
 
 /// Folder (inside the sources folder) where feedback is saved. It is read separately
 /// as style guidance, never as experience.
@@ -35,6 +39,8 @@ pub struct Document {
 #[derive(Debug, Default)]
 pub struct Collection {
     pub documents: Vec<Document>,
+    /// Structured data from APIs (JSON Resume or adapters), already tagged with its source.
+    pub profiles: Vec<Profile>,
     /// Files that were found but not read, with the reason.
     pub skipped: Vec<(PathBuf, String)>,
     ids: HashSet<String>,
@@ -151,8 +157,46 @@ impl Collection {
         id
     }
 
+    /// Fetches an API source. Failures are recorded in `skipped`.
+    pub fn add_api(
+        &mut self,
+        api: &ApiSource,
+        token: Option<&str>,
+        transport: &dyn Transport,
+    ) -> Option<api::Mode> {
+        match api::fetch(api, token, transport) {
+            Ok((mode, fetched)) => {
+                let mut id = api::source_id(&api.url);
+                let base = id.clone();
+                let mut n = 2;
+                while self.ids.contains(&id) {
+                    id = format!("{base}-{n}");
+                    n += 1;
+                }
+                self.ids.insert(id.clone());
+                let source = api::source_for(&api.url, id);
+                match fetched {
+                    api::Fetched::Profile(p) => self.profiles.push(api::tag(*p, &source)),
+                    api::Fetched::Raw(text) => {
+                        let (text, truncated) = truncate(text, MAX_CHARS_PER_FILE);
+                        self.documents.push(Document {
+                            source,
+                            text,
+                            truncated,
+                        });
+                    }
+                }
+                Some(mode)
+            }
+            Err(e) => {
+                self.skipped.push((PathBuf::from(&api.url), e.to_string()));
+                None
+            }
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
-        self.documents.is_empty()
+        self.documents.is_empty() && self.profiles.is_empty()
     }
 
     /// Total characters of extracted text.
