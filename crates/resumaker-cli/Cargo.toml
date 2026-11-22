@@ -10,7 +10,8 @@ repository.workspace = true
 
 [dependencies]
 clap.workspace = true
-resumaker-core.workspace = true
+resumaker-core = { workspace = true, features = ["clap"] }
+anyhow.workspace = true
 
 [lints]
 workspace = true

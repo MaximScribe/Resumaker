@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use resumaker_cli::Format;
+use resumaker_core::Format;
 
 /// Make a resume tailored to a job, with an optional cover letter.
 #[derive(Parser, Debug)]

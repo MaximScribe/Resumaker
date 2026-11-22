@@ -1,7 +1,10 @@
+mod templates;
+
 use std::path::PathBuf;
+use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use resumaker_cli::Format;
+use resumaker_core::Format;
 
 /// Set up Resumaker and manage its settings. Run without a command to start the setup wizard.
 #[derive(Parser, Debug)]
@@ -103,7 +106,16 @@ enum TemplatesCommand {
     /// Download the preset template pack.
     Download,
     /// Render a template with example data.
-    Preview { name: String },
+    Preview {
+        /// Built-in template name or path to a .typ file.
+        name: String,
+        /// Output folder.
+        #[arg(short, long, default_value = ".")]
+        out: PathBuf,
+        /// Formats to write, comma-separated.
+        #[arg(long, value_enum, value_delimiter = ',', default_value = "pdf")]
+        format: Vec<Format>,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -114,10 +126,23 @@ enum FeedbackCommand {
     Clear,
 }
 
-fn main() {
-    let cli = Cli::parse();
+fn main() -> ExitCode {
+    match run(Cli::parse()) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("error: {e:#}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run(cli: Cli) -> anyhow::Result<()> {
     match cli.command {
-        None => println!("setup wizard: not implemented yet"),
-        Some(command) => println!("{command:#?}"),
+        None => anyhow::bail!("the setup wizard is not implemented yet"),
+        Some(Command::Templates(TemplatesCommand::List)) => templates::list(),
+        Some(Command::Templates(TemplatesCommand::Preview { name, out, format })) => {
+            templates::preview(&name, &out, &format)
+        }
+        Some(command) => anyhow::bail!("not implemented yet: {command:?}"),
     }
 }

@@ -13,6 +13,16 @@ serde.workspace = true
 serde_json.workspace = true
 serde_with.workspace = true
 thiserror.workspace = true
+typst.workspace = true
+typst-pdf.workspace = true
+typst-layout.workspace = true
+docx-rs.workspace = true
+clap = { workspace = true, optional = true }
+typst-kit.workspace = true
+
+[features]
+# Derives clap::ValueEnum for option enums such as export::Format.
+clap = ["dep:clap"]
 
 [lints]
 workspace = true
