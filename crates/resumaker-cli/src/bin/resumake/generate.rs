@@ -1,5 +1,5 @@
 use std::io::IsTerminal;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, bail};
 use resumaker_cli::wizard;
@@ -180,7 +180,7 @@ fn collect(args: &Args, config: &Config) -> anyhow::Result<Collection> {
 }
 
 /// Expands `*`, `?` and `[…]` patterns, which Windows shells leave to the program.
-fn expand_glob(pattern: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {
+fn expand_glob(pattern: &Path) -> anyhow::Result<Vec<PathBuf>> {
     let text = pattern.to_string_lossy();
     if !text.contains(['*', '?', '[']) {
         return Ok(vec![expand_home(pattern)]);
