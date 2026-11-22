@@ -1,3 +1,4 @@
+mod feedback;
 mod settings;
 mod sources;
 mod templates;
@@ -155,7 +156,11 @@ enum FeedbackCommand {
     /// List saved feedback.
     List,
     /// Delete all saved feedback.
-    Clear,
+    Clear {
+        /// Do not ask for confirmation.
+        #[arg(short, long)]
+        yes: bool,
+    },
 }
 
 fn main() -> ExitCode {
@@ -175,6 +180,8 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Some(Command::Auth(cmd)) => settings::auth(cmd),
         Some(Command::Config) => settings::show(),
         Some(Command::Sources { action: None }) => sources::list(),
+        Some(Command::Feedback(FeedbackCommand::List)) => feedback::list(),
+        Some(Command::Feedback(FeedbackCommand::Clear { yes })) => feedback::clear(yes),
         Some(Command::Templates(TemplatesCommand::List)) => templates::list(),
         Some(Command::Templates(TemplatesCommand::Preview { name, out, format })) => {
             templates::preview(&name, &out, &format)

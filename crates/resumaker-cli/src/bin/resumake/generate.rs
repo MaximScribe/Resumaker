@@ -5,6 +5,7 @@ use anyhow::{Context, bail};
 use resumaker_cli::wizard;
 use resumaker_core::config::{Config, expand_home};
 use resumaker_core::export::Options;
+use resumaker_core::feedback;
 use resumaker_core::letter::{self, LetterRequest};
 use resumaker_core::llm::{self, Endpoint, Llm};
 use resumaker_core::pipeline::context::{self, ContextOrigin};
@@ -16,8 +17,8 @@ use resumaker_core::{Error, Format, Profile, Template};
 use crate::Args;
 
 pub fn run(args: Args) -> anyhow::Result<()> {
-    if args.feedback {
-        bail!("the feedback loop is not available yet");
+    if args.feedback && !(std::io::stdin().is_terminal() && std::io::stdout().is_terminal()) {
+        bail!("the feedback loop (-F) needs an interactive terminal");
     }
 
     let config = load_config()?;
@@ -107,6 +108,12 @@ pub fn run(args: Args) -> anyhow::Result<()> {
         );
     }
 
+    let feedback_dir = feedback::dir(config.sources.folder.as_deref().map(expand_home).as_deref())?;
+    let saved = feedback::preferences(&feedback_dir)?;
+    if !saved.is_empty() {
+        println!("using {} point(s) of saved feedback", saved.len());
+    }
+
     let session = Session {
         llm: llm.as_ref(),
         profile,
@@ -121,8 +128,59 @@ pub fn run(args: Args) -> anyhow::Result<()> {
         out_base,
         force: args.force,
     };
-    let output = session.produce(&[], None)?;
+    let output = session.produce(&saved, None)?;
     output.print();
+    if args.feedback {
+        feedback_loop(&session, saved, output, &feedback_dir)?;
+    }
+    Ok(())
+}
+
+/// Asks for feedback, regenerates into the same folder, and saves what was said.
+fn feedback_loop(
+    session: &Session,
+    saved: Vec<String>,
+    mut output: Output,
+    feedback_dir: &Path,
+) -> anyhow::Result<()> {
+    let mut points: Vec<String> = Vec::new();
+    loop {
+        let answer = match inquire::Text::new("How did it turn out?")
+            .with_help_message("Describe what to change, or press Enter to finish")
+            .prompt()
+        {
+            Ok(a) => a,
+            Err(
+                inquire::InquireError::OperationCanceled
+                | inquire::InquireError::OperationInterrupted,
+            ) => String::new(),
+            Err(e) => return Err(e.into()),
+        };
+        let answer = answer.trim();
+        if answer.is_empty() {
+            break;
+        }
+        points.push(answer.to_owned());
+        let mut preferences = saved.clone();
+        preferences.extend(points.iter().cloned());
+        output = session.produce(&preferences, Some(&output.dir))?;
+        output.print();
+    }
+    if points.is_empty() {
+        return Ok(());
+    }
+    let label = output
+        .dir
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .and_then(|n| n.split_once('_').map(|(_, rest)| rest.to_owned()))
+        .unwrap_or_else(|| "general".to_owned());
+    let about = format!("the {label} application");
+    let path = feedback::save(feedback_dir, &pipeline::today(), &label, &about, &points)?;
+    println!(
+        "feedback saved to {}; future runs will take it into account",
+        path.display()
+    );
     Ok(())
 }
 
