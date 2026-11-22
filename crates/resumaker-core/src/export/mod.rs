@@ -3,7 +3,7 @@
 mod docx;
 mod html;
 mod markdown;
-mod pdf;
+pub(crate) mod pdf;
 mod text;
 pub mod view;
 

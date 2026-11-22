@@ -26,14 +26,22 @@ pub fn render(
     view: &View,
     options: &serde_json::Value,
 ) -> Result<Vec<u8>, Error> {
-    let world = TemplateWorld::new(
+    compile(
         template,
         [
             ("view.json", serde_json::to_vec(view)?),
             ("profile.json", serde_json::to_vec(profile)?),
             ("options.json", serde_json::to_vec(options)?),
         ],
-    )?;
+    )
+}
+
+/// Compiles a template to PDF with the given virtual files.
+pub(crate) fn compile<const N: usize>(
+    template: &Template,
+    files: [(&str, Vec<u8>); N],
+) -> Result<Vec<u8>, Error> {
+    let world = TemplateWorld::new(template, files)?;
     let document: PagedDocument = typst::compile(&world)
         .output
         .map_err(|diags| world.error(&diags))?;
