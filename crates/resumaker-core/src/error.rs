@@ -49,6 +49,11 @@ pub enum Error {
     #[error("{}: {reason}", path.display())]
     Unreadable { path: PathBuf, reason: String },
 
+    #[error(
+        "no experience sources: set a folder with `resumaker set source folder` or pass files with -f"
+    )]
+    NoSources,
+
     #[error("model: {0}")]
     Llm(String),
 
