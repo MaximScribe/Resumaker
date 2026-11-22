@@ -74,6 +74,10 @@ struct Args {
     #[arg(short = 'F', long, help_heading = "Run")]
     feedback: bool,
 
+    /// Fail instead of warning when the fact check still finds unsupported claims.
+    #[arg(long, help_heading = "Run")]
+    strict: bool,
+
     /// Show the sources and plan without calling the model.
     #[arg(long, help_heading = "Run")]
     dry_run: bool,

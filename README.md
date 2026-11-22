@@ -17,7 +17,7 @@ resumake -c "Backend developer, TypeScript + Postgres" -m  # tailored resume + c
 - **Your own layout.** Give it a PDF of a resume you like and Resumaker builds a matching template. Or use a preset.
 - **Multiple formats.** Export PDF, DOCX, Markdown, HTML, TXT and JSON.
 - **Feedback loop.** Review a result, ask for changes, and Resumaker remembers your preferences in later runs.
-- **No invented facts.** Every claim must come from one of your sources. A check pass flags anything that doesn't.
+- **No invented facts.** Every claim must come from one of your sources. A built-in fact check compares employers, schools, dates, numbers and skills against your sources and asks the model to fix anything unsupported.
 - **Private by default.** Built for local inference. Cloud providers are optional.
 
 ## Privacy
@@ -120,6 +120,7 @@ resumake [options]
 | `--cover-only` | | Write only the cover letter |
 | `--no-sources` | | Ignore configured sources and use only `--file` |
 | `--provider <name>`, `--model <id>` | | Override the model for this run |
+| `--strict` | | Fail instead of warning if the fact check still finds unsupported claims |
 | `--dry-run` | | Show the sources and plan without calling the model |
 | `--force` | `-y` | Overwrite existing files |
 | `--verbose` | `-v` | Show each pipeline step |

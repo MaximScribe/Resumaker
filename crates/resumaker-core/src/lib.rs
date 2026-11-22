@@ -5,6 +5,7 @@
 pub mod config;
 mod error;
 pub mod export;
+pub mod factcheck;
 pub mod feedback;
 pub mod letter;
 pub mod llm;
