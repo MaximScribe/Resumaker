@@ -12,7 +12,7 @@ use serde::Deserialize;
 use crate::export::{self, Lang, Options};
 use crate::llm::{self, Llm, Prompt};
 use crate::profile::Profile;
-use crate::sources::Document;
+use crate::sources::{Collection, Document};
 use crate::{Error, Format};
 
 const MERGE_PROMPT: &str = include_str!("../../assets/prompts/merge.md");
@@ -68,6 +68,37 @@ pub fn merge(
         let _ = profile.save(path);
     }
     Ok(profile)
+}
+
+/// Builds the candidate's profile from everything collected: structured API data is
+/// used as is, documents are merged by the model, and both are combined.
+pub fn build_profile(
+    llm: &dyn Llm,
+    model_id: &str,
+    collection: &Collection,
+    cache_dir: Option<&Path>,
+) -> Result<Profile, Error> {
+    if collection.is_empty() {
+        return Err(Error::NoSources);
+    }
+    if collection.documents.is_empty() {
+        return Ok(Profile::combine(collection.profiles.iter().cloned()));
+    }
+    if collection.profiles.is_empty() {
+        return merge(llm, model_id, &collection.documents, cache_dir);
+    }
+    // Mixed sources: let the model reconcile documents and structured data together.
+    let mut documents = collection.documents.clone();
+    for p in &collection.profiles {
+        let mut data = p.clone();
+        let source = data.sources.remove(0);
+        documents.push(Document {
+            text: data.to_json()?,
+            source,
+            truncated: false,
+        });
+    }
+    merge(llm, model_id, &documents, cache_dir)
 }
 
 /// What the resume is aimed at.

@@ -2,7 +2,7 @@ use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, bail};
-use resumaker_cli::wizard;
+use resumaker_cli::{apis, wizard};
 use resumaker_core::config::{Config, expand_home};
 use resumaker_core::export::Options;
 use resumaker_core::feedback;
@@ -88,16 +88,13 @@ pub fn run(args: Args) -> anyhow::Result<()> {
     let llm = llm::connect(endpoint);
     let cache = Config::dir().ok().map(|d| d.join("cache"));
 
-    println!(
-        "merging {} source(s) with {model_id}…",
-        collection.documents.len()
-    );
-    let profile = pipeline::merge(
-        llm.as_ref(),
-        &model_id,
-        &collection.documents,
-        cache.as_deref(),
-    )?;
+    if !collection.documents.is_empty() {
+        println!(
+            "merging {} source(s) with {model_id}…",
+            collection.documents.len() + collection.profiles.len()
+        );
+    }
+    let profile = pipeline::build_profile(llm.as_ref(), &model_id, &collection, cache.as_deref())?;
     if args.verbose {
         println!(
             "profile: {} positions, {} education entries, {} skill groups, {} projects",
@@ -321,9 +318,7 @@ fn collect(args: &Args, config: &Config) -> anyhow::Result<Collection> {
         if let Some(folder) = &config.sources.folder {
             collection.add_folder(&expand_home(folder))?;
         }
-        if !config.sources.apis.is_empty() {
-            println!("note: API sources are not supported yet and were skipped");
-        }
+        apis::fetch_all(config, &mut collection)?;
     }
     for pattern in &args.file {
         for path in expand_glob(pattern)? {
@@ -338,8 +333,8 @@ fn collect(args: &Args, config: &Config) -> anyhow::Result<Collection> {
     }
     let truncated = collection.documents.iter().filter(|d| d.truncated).count();
     println!(
-        "read {} source file(s){}",
-        collection.documents.len(),
+        "read {} source(s){}",
+        collection.documents.len() + collection.profiles.len(),
         if truncated > 0 {
             format!(" ({truncated} shortened)")
         } else {

@@ -180,6 +180,9 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Some(Command::Auth(cmd)) => settings::auth(cmd),
         Some(Command::Config) => settings::show(),
         Some(Command::Sources { action: None }) => sources::list(),
+        Some(Command::Sources {
+            action: Some(SourcesCommand::Pull),
+        }) => sources::pull(),
         Some(Command::Feedback(FeedbackCommand::List)) => feedback::list(),
         Some(Command::Feedback(FeedbackCommand::Clear { yes })) => feedback::clear(yes),
         Some(Command::Templates(TemplatesCommand::List)) => templates::list(),

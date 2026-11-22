@@ -24,6 +24,9 @@ pub enum Error {
     #[error("unknown format `{0}` (expected pdf, docx, md, html, txt or json)")]
     UnknownFormat(String),
 
+    #[error("unknown API adapter `{0}`")]
+    UnknownAdapter(String),
+
     #[error("unknown provider `{0}`")]
     UnknownProvider(String),
 

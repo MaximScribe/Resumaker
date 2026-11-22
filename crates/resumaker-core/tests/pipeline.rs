@@ -166,3 +166,96 @@ fn writes_every_format_into_an_application_folder() {
     assert!(next.to_string_lossy().ends_with("_acme-2"));
     std::fs::remove_dir_all(&base).ok();
 }
+
+mod api_sources {
+    use resumaker_core::config::ApiSource;
+    use resumaker_core::llm::http::{Headers, Transport};
+    use resumaker_core::sources::Collection;
+    use resumaker_core::sources::api::Mode;
+    use serde_json::{Value, json};
+
+    use super::*;
+
+    struct StaticApi(Value);
+
+    impl Transport for StaticApi {
+        fn get(&self, _url: &str, headers: &Headers) -> Result<Value, Error> {
+            assert!(
+                headers
+                    .iter()
+                    .any(|(k, v)| *k == "Authorization" && v == "Bearer t")
+            );
+            Ok(self.0.clone())
+        }
+        fn post(&self, _: &str, _: &Headers, _: &Value) -> Result<Value, Error> {
+            unreachable!()
+        }
+    }
+
+    fn api(url: &str) -> ApiSource {
+        ApiSource {
+            url: url.into(),
+            adapter: None,
+            token: true,
+        }
+    }
+
+    #[test]
+    fn json_resume_apis_need_no_model() {
+        let mut c = Collection::default();
+        let a = StaticApi(json!({ "basics": { "name": "Sam" }, "work": [{ "name": "Acme" }] }));
+        let b = StaticApi(
+            json!([{ "name": "lib", "description": "A library", "stargazers_count": 5 }]),
+        );
+        assert_eq!(
+            c.add_api(&api("https://me.example/resume"), Some("t"), &a),
+            Some(Mode::JsonResume)
+        );
+        assert_eq!(
+            c.add_api(
+                &api("https://api.github.com/users/sam/repos"),
+                Some("t"),
+                &b
+            ),
+            Some(Mode::Adapter("github"))
+        );
+        let llm = FakeLlm::new(&[]);
+        let profile = pipeline::build_profile(&llm, "m", &c, None).unwrap();
+        assert_eq!(llm.calls(), 0);
+        assert_eq!(profile.basics.name.as_deref(), Some("Sam"));
+        assert_eq!(profile.work[0].source.as_deref(), Some("me-example-resume"));
+        assert_eq!(
+            profile.projects[0].source.as_deref(),
+            Some("api-github-com-users-sam-repos")
+        );
+        assert_eq!(profile.sources.len(), 2);
+        assert!(profile.dangling_sources().is_empty());
+    }
+
+    #[test]
+    fn raw_apis_and_failures() {
+        let mut c = Collection::default();
+        let raw = StaticApi(json!({ "jobs": [{ "title": "Dev" }] }));
+        assert_eq!(
+            c.add_api(&api("https://x.example/me"), Some("t"), &raw),
+            Some(Mode::Raw)
+        );
+        assert_eq!(c.documents.len(), 1);
+
+        struct Down;
+        impl Transport for Down {
+            fn get(&self, url: &str, _: &Headers) -> Result<Value, Error> {
+                Err(Error::Http {
+                    url: url.into(),
+                    status: Some(503),
+                    message: "down".into(),
+                })
+            }
+            fn post(&self, _: &str, _: &Headers, _: &Value) -> Result<Value, Error> {
+                unreachable!()
+            }
+        }
+        assert_eq!(c.add_api(&api("https://down.example"), None, &Down), None);
+        assert_eq!(c.skipped.len(), 1);
+    }
+}
