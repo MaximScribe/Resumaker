@@ -170,7 +170,7 @@ fn main() -> ExitCode {
 
 fn run(cli: Cli) -> anyhow::Result<()> {
     match cli.command {
-        None => anyhow::bail!("the setup wizard is not implemented yet"),
+        None => resumaker_cli::wizard::run(),
         Some(Command::Set(cmd)) => settings::set(cmd),
         Some(Command::Auth(cmd)) => settings::auth(cmd),
         Some(Command::Config) => settings::show(),
