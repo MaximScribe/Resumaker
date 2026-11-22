@@ -1,0 +1,8 @@
+{
+  "templates": [
+    { "name": "modern", "file": "modern.typ", "description": "Sans-serif with a sidebar for contacts, skills and languages" },
+    { "name": "compact", "file": "compact.typ", "description": "Dense one-page layout for experienced candidates" },
+    { "name": "academic", "file": "academic.typ", "description": "Serif CV that leads with education and publications" },
+    { "name": "lebenslauf", "file": "lebenslauf.typ", "description": "Tabular German CV with dates in the left column" }
+  ]
+}

@@ -384,6 +384,13 @@ fn folder_prompt(current: Option<&Path>) -> anyhow::Result<PathBuf> {
 fn style(config: &mut Config) -> anyhow::Result<()> {
     const CUSTOM: &str = "Use my own Typst template (.typ file)";
     let mut options: Vec<String> = Template::builtin_names().map(str::to_owned).collect();
+    if let Ok(dir) = resumaker_core::template::user_dir() {
+        options.extend(
+            resumaker_core::template::installed(&dir)
+                .into_iter()
+                .map(|e| e.name),
+        );
+    }
     options.push(CUSTOM.to_owned());
     let start = options
         .iter()

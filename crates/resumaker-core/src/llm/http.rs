@@ -110,6 +110,33 @@ fn redact(url: &str) -> String {
     url.split('?').next().unwrap_or(url).to_owned()
 }
 
+/// Fetches a URL as text (web pages and template files).
+pub fn get_text(url: &str) -> Result<String, Error> {
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(30)))
+        .user_agent(concat!(
+            "Mozilla/5.0 (compatible; resumaker/",
+            env!("CARGO_PKG_VERSION"),
+            ")"
+        ))
+        .build()
+        .into();
+    let error = |e: ureq::Error| Error::Http {
+        url: redact(url),
+        status: None,
+        message: e.to_string(),
+    };
+    agent
+        .get(url)
+        .call()
+        .map_err(error)?
+        .body_mut()
+        .with_config()
+        .limit(10 * 1024 * 1024)
+        .read_to_string()
+        .map_err(error)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
