@@ -84,16 +84,20 @@ You can also change settings directly:
 
 | Command | Description |
 |---|---|
-| `resumaker set provider <name> [--model <id>]` | Change the inference provider |
+| `resumaker set provider <name> [--model <id>] [--url <url>]` | Change the inference provider |
 | `resumaker set source folder <path>` | Set the folder of experience files |
-| `resumaker set source api <url> [--token <t>]` | Add an API source |
-| `resumaker set style <pdf \| preset>` | Change the reference resume or preset |
+| `resumaker set source api <url> [--token]` | Add an API source; `--token` asks for a bearer token |
+| `resumaker set source remove-api <url>` | Remove an API source |
+| `resumaker set style <preset \| template.typ>` | Change the resume template |
 | `resumaker set output <path>` | Change the output folder |
 | `resumaker set formats <list>` | Change the default formats, e.g. `pdf,docx` |
+| `resumaker set lang <code>` | Change the output language, e.g. `en`, `de` |
+| `resumaker set pages <1\|2>` | Change the maximum resume length |
 | `resumaker auth add \| list \| remove \| test` | Manage cloud API keys |
 | `resumaker sources [pull]` | List sources, or fetch and print the merged profile |
 | `resumaker templates list \| download \| preview <name>` | Manage templates |
 | `resumaker feedback list \| clear` | View or delete saved feedback |
+| `resumaker config` | Show the config file location and contents |
 
 ## Usage: `resumake`
 
@@ -177,7 +181,7 @@ A reference PDF is turned into a Typst template during setup. Resumaker extracts
 
 ## Configuration
 
-Settings are stored in `~/.config/resumaker/config.toml` (`%APPDATA%\resumaker\` on Windows).
+Settings are stored in `config.toml` in your config directory: `~/.config/resumaker/` on Linux, `%APPDATA%\resumaker\` on Windows, `~/Library/Application Support/resumaker/` on macOS. Set `RESUMAKER_CONFIG` to use another file.
 
 ```toml
 [inference]
