@@ -1,7 +1,6 @@
 //! Job context: free text, a job-posting file or a web page.
 
 use std::path::Path;
-use std::time::Duration;
 
 use crate::Error;
 use crate::sources::{FileKind, extract};
@@ -52,29 +51,7 @@ pub fn load(item: &str) -> Result<Context, Error> {
 }
 
 fn fetch(url: &str) -> Result<String, Error> {
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .timeout_global(Some(Duration::from_secs(30)))
-        .user_agent(concat!(
-            "Mozilla/5.0 (compatible; resumaker/",
-            env!("CARGO_PKG_VERSION"),
-            ")"
-        ))
-        .build()
-        .into();
-    let http_error = |e: ureq::Error| Error::Http {
-        url: url.to_owned(),
-        status: None,
-        message: e.to_string(),
-    };
-    agent
-        .get(url)
-        .call()
-        .map_err(http_error)?
-        .body_mut()
-        .with_config()
-        .limit(10 * 1024 * 1024)
-        .read_to_string()
-        .map_err(http_error)
+    crate::llm::http::get_text(url)
 }
 
 fn limit(text: String) -> String {

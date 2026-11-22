@@ -186,9 +186,9 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Some(Command::Feedback(FeedbackCommand::List)) => feedback::list(),
         Some(Command::Feedback(FeedbackCommand::Clear { yes })) => feedback::clear(yes),
         Some(Command::Templates(TemplatesCommand::List)) => templates::list(),
+        Some(Command::Templates(TemplatesCommand::Download)) => templates::download(),
         Some(Command::Templates(TemplatesCommand::Preview { name, out, format })) => {
             templates::preview(&name, &out, &format)
         }
-        Some(command) => anyhow::bail!("not implemented yet: {command:?}"),
     }
 }

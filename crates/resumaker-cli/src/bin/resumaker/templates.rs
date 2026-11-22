@@ -2,17 +2,35 @@ use std::path::Path;
 
 use anyhow::Context;
 use resumaker_core::export::{self, Options};
+use resumaker_core::llm::http;
+use resumaker_core::template::{self, DEFAULT};
 use resumaker_core::{Format, Profile, Template};
 
 pub fn list() -> anyhow::Result<()> {
     for name in Template::builtin_names() {
-        let marker = if name == resumaker_core::template::DEFAULT {
-            " (default)"
-        } else {
-            ""
-        };
-        println!("{name}{marker}");
+        let marker = if name == DEFAULT { " (default)" } else { "" };
+        println!("{name:<14} built-in{marker}");
     }
+    let installed = template::installed(&template::user_dir()?);
+    for entry in &installed {
+        println!("{:<14} {}", entry.name, entry.description);
+    }
+    if installed.is_empty() {
+        println!("\nget more with `resumaker templates download`");
+    }
+    Ok(())
+}
+
+pub fn download() -> anyhow::Result<()> {
+    let url = template::pack_url();
+    let dir = template::user_dir()?;
+    println!("downloading templates from {url}");
+    let entries = template::download(&url, &dir, http::get_text)?;
+    for e in &entries {
+        println!("  ✔ {:<12} {}", e.name, e.description);
+    }
+    println!("installed in {}", dir.display());
+    println!("preview one with `resumaker templates preview <name>`");
     Ok(())
 }
 
