@@ -5,7 +5,6 @@ use anyhow::{Context, bail};
 use resumaker_cli::{apis, wizard};
 use resumaker_core::config::{Config, expand_home};
 use resumaker_core::export::Options;
-use resumaker_core::feedback;
 use resumaker_core::letter::{self, LetterRequest};
 use resumaker_core::llm::{self, Endpoint, Llm};
 use resumaker_core::pipeline::context::{self, ContextOrigin};
@@ -13,6 +12,7 @@ use resumaker_core::pipeline::{self, TailorRequest, Target};
 use resumaker_core::secrets::Secrets;
 use resumaker_core::sources::Collection;
 use resumaker_core::{Error, Format, Profile, Template};
+use resumaker_core::{factcheck, feedback};
 
 use crate::Args;
 
@@ -124,6 +124,7 @@ pub fn run(args: Args) -> anyhow::Result<()> {
         letter: wants_letter,
         out_base,
         force: args.force,
+        strict: args.strict,
     };
     let output = session.produce(&saved, None)?;
     output.print();
@@ -195,6 +196,7 @@ struct Session<'a> {
     letter: bool,
     out_base: PathBuf,
     force: bool,
+    strict: bool,
 }
 
 struct Output {
@@ -216,6 +218,26 @@ impl Output {
 }
 
 impl Session<'_> {
+    /// Prints remaining fact-check findings, or fails with `--strict`.
+    fn report(&self, document: &str, issues: &[factcheck::Issue]) -> anyhow::Result<()> {
+        if issues.is_empty() {
+            println!("fact check: {document} ok");
+            return Ok(());
+        }
+        let list: Vec<String> = issues.iter().map(|i| format!("  - {i}")).collect();
+        if self.strict {
+            bail!(
+                "the {document} still contains unsupported claims:\n{}",
+                list.join("\n")
+            );
+        }
+        println!("warning: please check these claims in the {document}:");
+        for line in list {
+            println!("{line}");
+        }
+        Ok(())
+    }
+
     /// Writes the documents. `dir` reuses an existing application folder.
     fn produce(&self, preferences: &[String], dir: Option<&Path>) -> anyhow::Result<Output> {
         let mut target = Target::default();
@@ -228,7 +250,19 @@ impl Session<'_> {
                 lang: self.lang.clone(),
                 pages: self.pages,
             };
-            let t = pipeline::tailor(self.llm, &self.profile, &request)?;
+            let mut t = pipeline::tailor(self.llm, &self.profile, &request)?;
+            let mut issues = factcheck::check_resume(&t.profile, &self.profile);
+            if !issues.is_empty() {
+                println!(
+                    "fact check: {} unsupported claim(s), asking for a corrected draft…",
+                    issues.len()
+                );
+                let mut retry = request.clone();
+                retry.preferences.push(factcheck::correction_note(&issues));
+                t = pipeline::tailor(self.llm, &self.profile, &retry)?;
+                issues = factcheck::check_resume(&t.profile, &self.profile);
+            }
+            self.report("resume", &issues)?;
             target = t.target.clone();
             tailored = Some(t.profile);
         }
@@ -243,7 +277,19 @@ impl Session<'_> {
             };
             // The letter draws on the tailored resume when there is one, so both agree.
             let facts = tailored.as_ref().unwrap_or(&self.profile);
-            let (t, l) = letter::write(self.llm, facts, &request)?;
+            let (mut t, mut l) = letter::write(self.llm, facts, &request)?;
+            let mut issues = factcheck::check_letter(&l, &self.profile, &self.notes);
+            if !issues.is_empty() {
+                println!(
+                    "fact check: {} unsupported claim(s) in the letter, asking for a corrected draft…",
+                    issues.len()
+                );
+                let mut retry = request.clone();
+                retry.preferences.push(factcheck::correction_note(&issues));
+                (t, l) = letter::write(self.llm, facts, &retry)?;
+                issues = factcheck::check_letter(&l, &self.profile, &self.notes);
+            }
+            self.report("cover letter", &issues)?;
             if target == Target::default() {
                 target = t;
             }
