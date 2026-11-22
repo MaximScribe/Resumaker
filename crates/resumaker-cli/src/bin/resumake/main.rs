@@ -1,7 +1,10 @@
+mod generate;
+
 use std::path::PathBuf;
+use std::process::ExitCode;
 
 use clap::Parser;
-use resumaker_core::Format;
+use resumaker_core::{Format, ProviderKind};
 
 /// Make a resume tailored to a job, with an optional cover letter.
 #[derive(Parser, Debug)]
@@ -39,7 +42,7 @@ struct Args {
     #[arg(long, value_enum, value_delimiter = ',', help_heading = "Output")]
     format: Vec<Format>,
 
-    /// Preset name or reference PDF for this run. Default: from setup.
+    /// Template name or .typ file for this run. Default: from setup.
     #[arg(short = 's', long, help_heading = "Output")]
     style: Option<String>,
 
@@ -47,22 +50,21 @@ struct Args {
     #[arg(short = 'l', long, help_heading = "Output")]
     lang: Option<String>,
 
-    /// Maximum resume length in pages.
+    /// Maximum resume length in pages. Default: from setup.
     #[arg(
         long,
-        default_value_t = 1,
         value_parser = clap::value_parser!(u8).range(1..=2),
         help_heading = "Output"
     )]
-    pages: u8,
+    pages: Option<u8>,
 
-    /// Overwrite existing files without asking.
+    /// Reuse today's application folder instead of creating a new one.
     #[arg(short = 'y', long, help_heading = "Output")]
     force: bool,
 
     /// Inference provider for this run. Default: from setup.
-    #[arg(long, help_heading = "Model")]
-    provider: Option<String>,
+    #[arg(long, value_enum, help_heading = "Model")]
+    provider: Option<ProviderKind>,
 
     /// Model for this run. Default: from setup.
     #[arg(long, help_heading = "Model")]
@@ -89,8 +91,12 @@ impl Args {
     }
 }
 
-fn main() {
-    let args = Args::parse();
-    println!("{args:#?}");
-    println!("cover letter: {}", args.wants_cover_letter());
+fn main() -> ExitCode {
+    match generate::run(Args::parse()) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("error: {e:#}");
+            ExitCode::FAILURE
+        }
+    }
 }
