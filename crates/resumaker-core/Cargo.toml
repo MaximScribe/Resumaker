@@ -19,6 +19,9 @@ typst-layout.workspace = true
 docx-rs.workspace = true
 clap = { workspace = true, optional = true }
 typst-kit.workspace = true
+toml.workspace = true
+dirs.workspace = true
+keyring.workspace = true
 
 [features]
 # Derives clap::ValueEnum for option enums such as export::Format.
