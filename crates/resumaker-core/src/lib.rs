@@ -9,6 +9,7 @@ pub mod llm;
 pub mod profile;
 pub mod provider;
 pub mod secrets;
+pub mod sources;
 pub mod template;
 
 pub use config::Config;

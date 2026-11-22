@@ -46,6 +46,9 @@ pub enum Error {
         message: String,
     },
 
+    #[error("{}: {reason}", path.display())]
+    Unreadable { path: PathBuf, reason: String },
+
     #[error("model: {0}")]
     Llm(String),
 

@@ -23,6 +23,11 @@ toml.workspace = true
 dirs.workspace = true
 keyring.workspace = true
 ureq.workspace = true
+pdf-extract.workspace = true
+calamine.workspace = true
+quick-xml.workspace = true
+zip.workspace = true
+walkdir.workspace = true
 
 [features]
 # Derives clap::ValueEnum for option enums such as export::Format.
