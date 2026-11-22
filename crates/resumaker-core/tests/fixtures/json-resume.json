@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
+  "basics": {
+    "name": "Sam Rivera",
+    "label": "Data Analyst",
+    "email": "sam@example.org",
+    "location": { "city": "Lisbon", "countryCode": "PT", "region": "Lisboa" },
+    "profiles": [{ "network": "GitHub", "username": "samr" }]
+  },
+  "work": [
+    {
+      "name": "Fabrikam",
+      "position": "Analyst",
+      "url": "https://fabrikam.example",
+      "startDate": "2019-05-01",
+      "endDate": "2023-02-28",
+      "highlights": ["Built the weekly KPI dashboard"]
+    }
+  ],
+  "volunteer": [{ "organization": "Code Club", "position": "Mentor", "startDate": "2020" }],
+  "education": [{ "institution": "University of Lisbon", "area": "Statistics", "studyType": "Master" }],
+  "awards": [{ "title": "Analyst of the Year", "date": "2022", "awarder": "Fabrikam" }],
+  "publications": [{ "name": "Forecasting with sparse data", "publisher": "Data Journal", "releaseDate": "2021-11" }],
+  "skills": [{ "name": "Analysis", "level": "Advanced", "keywords": ["SQL", "pandas"] }],
+  "languages": [{ "language": "Portuguese", "fluency": "Native speaker" }],
+  "interests": [{ "name": "Chess", "keywords": ["Openings"] }],
+  "references": [{ "name": "Jo Lee", "reference": "Sam is meticulous." }],
+  "projects": [{ "name": "kpi-kit", "type": "library", "roles": ["Maintainer"], "entity": "Personal" }],
+  "meta": { "version": "v1.0.0", "lastModified": "2023-03-01T10:00:00" }
+}
