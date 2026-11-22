@@ -14,6 +14,10 @@ repository = "https://github.com/MaximScribe/Resumaker"
 # Dependency versions written once, here. Crates refer to them by name.
 [workspace.dependencies]
 clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_with = "3"
+thiserror = "2"
 resumaker-core = { path = "crates/resumaker-core" }   # our own library, found by path
 
 # Compiler and linter rules for every crate

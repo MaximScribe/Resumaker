@@ -1,0 +1,95 @@
+{
+  "basics": {
+    "name": "Alex Morgan",
+    "label": "Software Engineer",
+    "email": "alex.morgan@example.com",
+    "phone": "+49 151 00000000",
+    "url": "https://alexmorgan.example.com",
+    "summary": "Software engineer with five years of experience building backend services and robotics software in Rust, C++ and TypeScript.",
+    "location": {
+      "city": "Munich",
+      "countryCode": "DE"
+    },
+    "profiles": [
+      { "network": "GitHub", "username": "alexmorgan", "url": "https://github.com/alexmorgan" },
+      { "network": "LinkedIn", "username": "alex-morgan", "url": "https://linkedin.com/in/alex-morgan" }
+    ]
+  },
+  "work": [
+    {
+      "name": "Northwind Robotics",
+      "position": "Software Engineer",
+      "location": "Munich, Germany",
+      "startDate": "2022-04",
+      "summary": "Motion planning and fleet software for warehouse robots.",
+      "highlights": [
+        "Rewrote the path planner in Rust, cutting planning time from 120 ms to 15 ms",
+        "Built a ROS 2 bridge used by a fleet of 40 robots",
+        "Introduced property-based testing for the navigation stack"
+      ],
+      "source": "cv-2024"
+    },
+    {
+      "name": "Contoso Payments",
+      "position": "Backend Developer",
+      "location": "Berlin, Germany",
+      "startDate": "2020-01",
+      "endDate": "2022-03",
+      "summary": "Payment APIs in TypeScript and PostgreSQL.",
+      "highlights": [
+        "Designed an idempotent payment API handling 2 million requests per day",
+        "Reduced p99 latency by 40% through query and index tuning",
+        "Mentored two junior developers"
+      ],
+      "source": "cv-2024"
+    }
+  ],
+  "education": [
+    {
+      "institution": "Technical University of Munich",
+      "area": "Computer Science",
+      "studyType": "Bachelor of Science",
+      "startDate": "2016-10",
+      "endDate": "2019-09",
+      "score": "1.7",
+      "courses": ["Distributed Systems", "Robotics", "Compiler Construction"],
+      "source": "transcript"
+    }
+  ],
+  "certificates": [
+    {
+      "name": "AWS Certified Developer – Associate",
+      "date": "2021-06",
+      "issuer": "Amazon Web Services",
+      "source": "certificates"
+    }
+  ],
+  "skills": [
+    { "name": "Languages", "keywords": ["Rust", "C++", "TypeScript", "Python", "SQL"], "source": "cv-2024" },
+    { "name": "Robotics", "keywords": ["ROS 2", "Motion planning", "SLAM"], "source": "cv-2024" },
+    { "name": "Infrastructure", "keywords": ["PostgreSQL", "Docker", "Kubernetes", "AWS"], "source": "cv-2024" }
+  ],
+  "languages": [
+    { "language": "English", "fluency": "Native speaker", "source": "cv-2024" },
+    { "language": "German", "fluency": "Fluent (C1)", "source": "cv-2024" }
+  ],
+  "projects": [
+    {
+      "name": "tinyslam",
+      "description": "A small 2D SLAM library for hobby robots.",
+      "highlights": ["300 stars on GitHub", "Runs on a Raspberry Pi Zero"],
+      "keywords": ["Rust", "SLAM"],
+      "url": "https://github.com/alexmorgan/tinyslam",
+      "source": "projects-notes"
+    }
+  ],
+  "interests": [
+    { "name": "Climbing", "source": "cv-2024" }
+  ],
+  "sources": [
+    { "id": "cv-2024", "kind": "file", "location": "career/cv-2024.pdf" },
+    { "id": "transcript", "kind": "file", "location": "career/transcript.pdf" },
+    { "id": "certificates", "kind": "file", "location": "career/certificates/aws.pdf" },
+    { "id": "projects-notes", "kind": "file", "location": "career/projects.md" }
+  ]
+}

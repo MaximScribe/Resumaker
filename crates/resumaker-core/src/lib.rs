@@ -1,14 +1,9 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Core library for Resumaker: collects experience, tailors it to a job and exports resumes.
+//!
+//! This crate never prints or prompts; front ends (the CLI, a future GUI) call into it.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod error;
+pub mod profile;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use error::Error;
+pub use profile::Profile;

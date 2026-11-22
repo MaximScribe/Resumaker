@@ -1,14 +1,5 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-*.tsbuildinfo
+# Rust build output
 target/
-
-# Logs
-*.log
-npm-debug.log*
 
 # Environment and secrets
 .env
@@ -18,9 +9,6 @@ npm-debug.log*
 # Generated resumes and local test data
 out/
 *.local.*
-
-# Test coverage
-coverage/
 
 # OS / editor
 .DS_Store
