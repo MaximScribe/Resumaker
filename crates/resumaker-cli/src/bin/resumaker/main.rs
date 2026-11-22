@@ -1,4 +1,5 @@
 mod settings;
+mod sources;
 mod templates;
 
 use std::path::PathBuf;
@@ -173,6 +174,7 @@ fn run(cli: Cli) -> anyhow::Result<()> {
         Some(Command::Set(cmd)) => settings::set(cmd),
         Some(Command::Auth(cmd)) => settings::auth(cmd),
         Some(Command::Config) => settings::show(),
+        Some(Command::Sources { action: None }) => sources::list(),
         Some(Command::Templates(TemplatesCommand::List)) => templates::list(),
         Some(Command::Templates(TemplatesCommand::Preview { name, out, format })) => {
             templates::preview(&name, &out, &format)
