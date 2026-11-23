@@ -4,7 +4,7 @@ resolver = "3"           # how dependency versions are chosen; "3" goes with edi
 
 # Shared package info. Each crate opts in with `version.workspace = true` etc.
 [workspace.package]
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"         # Rust language edition, like choosing -std=c++20
 rust-version = "1.92"    # oldest compiler we support
 license = "MIT"
@@ -39,7 +39,7 @@ typst-pdf = "0.15"
 typst-layout = "0.15"
 docx-rs = "0.4"
 typst-kit = { version = "0.15", default-features = false, features = ["embedded-fonts", "scan-fonts"] }
-resumaker-core = { path = "crates/resumaker-core", version = "1.0.0" }   # our own library, found by path
+resumaker-core = { path = "crates/resumaker-core", version = "1.0.1" }   # our own library, found by path
 
 # Compiler and linter rules for every crate
 [workspace.lints.rust]

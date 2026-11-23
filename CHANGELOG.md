@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - 2026-11-23
+
+### Added
+- Install scripts (`install.ps1` for Windows, `install.sh` for Linux and macOS) that download the latest release, verify its checksum and put `resumaker` and `resumake` on your `PATH`.
+- "By MaximScribe" credit under the banner in the setup wizard.
+
+### Fixed
+- The Linux release binary is built on Ubuntu 22.04, so it runs on distributions with glibc 2.35 or newer (1.0.0 needed glibc 2.43 and failed to start on most systems).
+
 ## [1.0.0] - 2026-11-23
 
 First stable release, with prebuilt binaries.
@@ -57,6 +66,7 @@ First stable release, with prebuilt binaries.
 - JSON Resume-based profile schema with source tracking.
 - Export to PDF (embedded Typst), DOCX, Markdown, HTML, text and JSON.
 
+[1.0.1]: https://github.com/MaximScribe/Resumaker/releases/tag/v1.0.1
 [1.0.0]: https://github.com/MaximScribe/Resumaker/releases/tag/v1.0.0
 [0.6.0]: https://github.com/MaximScribe/Resumaker/releases/tag/v0.6.0
 [0.5.0]: https://github.com/MaximScribe/Resumaker/releases/tag/v0.5.0

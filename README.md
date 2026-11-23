@@ -32,7 +32,25 @@ If you choose a cloud provider, setup tells you that your source files will be s
 
 Resumaker is a single self-contained binary with no runtime to install. PDF rendering ([Typst](https://typst.app)) is built in.
 
-**Prebuilt binaries:** download the archive for your platform from the [Releases](https://github.com/MaximScribe/Resumaker/releases) page, unpack it and put `resumaker` and `resumake` on your `PATH`. Each archive has a `.sha256` checksum next to it.
+**Install script (recommended).** It downloads the latest release, verifies its checksum, installs `resumaker` and `resumake` and puts them on your `PATH`, so both commands work in any new terminal.
+
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/MaximScribe/Resumaker/main/install.ps1 | iex
+```
+
+Linux and macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MaximScribe/Resumaker/main/install.sh | sh
+```
+
+The binaries go to `%LOCALAPPDATA%\Programs\Resumaker` on Windows and `~/.local/bin` on Linux and macOS. Run the same command again to update. Set `RESUMAKER_VERSION=v1.0.1` to install a specific release, or `RESUMAKER_INSTALL_DIR` to choose the folder.
+
+To uninstall, delete the two binaries from that folder. On Windows, also remove the folder from your user `PATH` (Settings → System → About → Advanced system settings → Environment Variables). On Linux and macOS, remove the line marked `# Added by the Resumaker installer` from your shell startup file. Your settings stay in the config directory (see [Configuration](#configuration)).
+
+**Manual download:** download the archive for your platform from the [Releases](https://github.com/MaximScribe/Resumaker/releases) page, unpack it and put `resumaker` and `resumake` on your `PATH`. Each archive has a `.sha256` checksum next to it. The Linux binary needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, RHEL 9, Fedora 36 or later).
 
 **From source** (requires [Rust](https://rustup.rs) 1.92+):
 
